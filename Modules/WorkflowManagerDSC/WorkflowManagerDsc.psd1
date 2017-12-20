@@ -106,7 +106,7 @@ PrivateData = @{
         ProjectUri = 'https://github.com/NikCharlebois/WorkflowManagerDsc'
 
         # A URL to an icon representing this module.
-        # IconUri = ''
+        IconUri = 'https://github.com/Microsoft/WorkflowManagerDSC/blob/master/Images/DSCModuleLogo.png'
 
         # ReleaseNotes of this module
         ReleaseNotes = '* Initial Release;'
