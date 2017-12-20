@@ -1,0 +1,13 @@
+
+[ClassVersion("1.0.0.0"), FriendlyName("WorkflowManagerFarm")]
+class MSFT_WorkflowManagerFarm : OMI_BaseResource
+{
+    [Key, Description("Set to 'present' to specificy that the product should be installed."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}]     String Ensure;
+    [Required, Description("Name of the database server")] String DatabaseServer;
+    [Required, Description("Secret to generate the workflow and service bus certificate"), EmbeddedInstance("MSFT_Credential")] String CertAutoGenerationKey;
+    [Required, Description("Workflow Manager Farm Account"), EmbeddedInstance("MSFT_Credential")] String FarmAccount;
+    [Required, Description("Password for the user that will be running the Workflow Manager engine"), EmbeddedInstance("MSFT_Credential")] String RunAsPassword;
+    [Write, Description("Automatically open firewall rules to the Workflow manager and service bus")] Boolean EnableFirewallRules;
+    [Write, Description("Allow connections to the Workflow Manager and Service Buss through HTTP")] Boolean EnableHttpPort;
+    [Write, Description("Namespace of the associated Service Bus")] String SBNamespace;
+};

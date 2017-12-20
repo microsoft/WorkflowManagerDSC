@@ -1,0 +1,27 @@
+{
+  "name": "workflowdsc",
+  "version": "1.0.0",
+  "description": "The WorkflowManagerDsc PowerShell module provides DSC resources that can be used to deploy and manage a Workflow Manager Farm",
+  "main": "gulpfile.js",
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "through2": "^2.0.1",
+    "markdownlint": "^0.2.0"
+  },
+  "devDependencies": {
+    "gulp-concat": "^2.6.0"
+  },
+  "scripts": {
+    "test": "powershell -File .vscode\\RunPesterTests.ps1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NikCharlebois/WorkflowManagerDsc.git"
+  },
+  "author": "Microsoft Corporation",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NikCharlebois/WorkflowManagerDsc/issues"
+  },
+  "homepage": "https://github.com/NikCharlebois/WorkflowManagerDsc#readme"
+}
