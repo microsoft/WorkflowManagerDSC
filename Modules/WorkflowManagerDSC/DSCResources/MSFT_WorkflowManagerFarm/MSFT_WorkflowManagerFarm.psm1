@@ -218,7 +218,7 @@ function Set-TargetResource
         $SBGWDBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer,$ServiceBusGatewayDB
         $SBMCDBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer,$ServiceBusMessageContainerDB
 
-        New-SBFarm -SBFarmDBConnectionString $dbConnstring `
+        New-SBFarm -SBFarmDBConnectionString $SBFADBConnstring `
                    -GatewayDBConnectionString $SBGWDBConnstring `
                    -MessageContainerDBConnectionString $SBMCDBConnstring `
                    -RunAsAccount $RunAsAccount.UserName `
