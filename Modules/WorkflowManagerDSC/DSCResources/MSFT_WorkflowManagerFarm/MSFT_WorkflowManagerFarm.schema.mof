@@ -5,8 +5,13 @@ class MSFT_WorkflowManagerFarm : OMI_BaseResource
     [Key, Description("Set to 'present' to specificy that the product should be installed."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}]     String Ensure;
     [Required, Description("Name of the database server")] String DatabaseServer;
     [Required, Description("Secret to generate the workflow and service bus certificate"), EmbeddedInstance("MSFT_Credential")] String CertAutoGenerationKey;
-    [Required, Description("Workflow Manager Farm Account"), EmbeddedInstance("MSFT_Credential")] String FarmAccount;
-    [Required, Description("Password for the user that will be running the Workflow Manager engine"), EmbeddedInstance("MSFT_Credential")] String RunAsPassword;
+    [Required, Description("Credentials for the user that will be running the Workflow Manager engine"), EmbeddedInstance("MSFT_Credential")] String RunAsAccount;
+    [Write, Description("Name of the Service Bus Farm database")] String ServiceBusFarmDB;
+    [Write, Description("Name of the Service Bus Gateway database")] String ServiceBusGatewayDB;
+    [Write, Description("Name of the Service Bus Message Container database")] String ServiceBusMessageContainerDB;
+    [Write, Description("Name of the Workflow Manager Farm database")] String WorkflowManagerFarmDB;
+    [Write, Description("Name of the Workflow Manager Instance database")] String WorkflowManagerInstanceDB;
+    [Write, Description("Name of the Workflow Manager Resource database")] String WorkflowManagerResourceDB;
     [Write, Description("Automatically open firewall rules to the Workflow manager and service bus")] Boolean EnableFirewallRules;
     [Write, Description("Allow connections to the Workflow Manager and Service Buss through HTTP")] Boolean EnableHttpPort;
     [Write, Description("Namespace of the associated Service Bus")] String SBNamespace;

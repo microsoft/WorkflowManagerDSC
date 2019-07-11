@@ -3,7 +3,7 @@
     This example shows how to install Workflow Manager on a server.
 #>
 
-    Configuration Example 
+    Configuration Example
     {
         param()
 
@@ -11,21 +11,20 @@
 
         $SetupAccount = Get-Credential
         WorkflowManagerInstall WFInstall
-        {  
-            Ensure = "Present"
-            WebPIPath = "C:/WorkflowManagerFiles/bin/WebpiCmd.exe"
-            XMLFeedPath = "C:/WorkflowManagerFiles/feeds/latest/webproductlist.xml"
+        {
+            Ensure               = "Present"
+            WebPIPath            = "C:/WorkflowManagerFiles/bin/WebpiCmd.exe"
+            XMLFeedPath          = "C:/WorkflowManagerFiles/feeds/latest/webproductlist.xml"
             PsDscRunAsCredential = $SetupAccount
         }
 
         WorkflowManagerFarm FarmConfig
         {
-            Ensure = "Present"
-            DatabaseServer = "localhost"
+            Ensure                = "Present"
+            DatabaseServer        = "localhost"
             CertAutoGenerationKey = $SetupAccount
-            RunAsPassword = $SetupAccount
-            FarmAccount = $SetupAccount
-            SBNamespace = "ServiceBus"
-            PsDscRunAsCredential = $SetupAccount
+            RunAsAccount          = $SetupAccount
+            SBNamespace           = "ServiceBus"
+            PsDscRunAsCredential  = $SetupAccount
         }
     }

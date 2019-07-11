@@ -17,7 +17,7 @@ Import-Module (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests\TestHel
 $TestEnvironment = Initialize-TestEnvironment `
     -DSCModuleName $Script:DSCModuleName `
     -DSCResourceName $Script:DSCResourceName `
-    -TestType Unit 
+    -TestType Unit
 
 try
 {
@@ -26,13 +26,129 @@ try
 
             Import-Module (Join-Path $PSScriptRoot "..\..\..\Modules\WorkflowManagerDsc" -Resolve)
             #Remove-Module -Name "WorkflowManager" -Force -ErrorAction SilentlyContinue
-            Import-Module $Global:CurrentWFCmdletModule -WarningAction SilentlyContinue 
+            Import-Module $Global:CurrentWFCmdletModule -WarningAction SilentlyContinue
             $Global:MethodCalledCount = 0
+
             Context "Workflow Manager is not installed, but should be" {
                 $testParams = @{
                     Ensure = "Present"
                     WebPIPath = "C:/WFFiles/bin/WebPICmd.exe"
                     XMLFeedPath = "C:/WFFiles/Feeds/Latest/webproductlist.xml"
+                }
+
+                Mock -CommandName Get-ChildItem -MockWith {
+                    return @()
+                }
+
+                Mock -CommandName Start-Process -MockWith {
+                    return @{
+                        ExitCode = 0
+                    }
+                }
+
+                Mock -CommandName Test-Path -MockWith {
+                    return $true
+                }
+
+                It "Returns that it is not installed from the get method" {
+                    (Get-TargetResource @testParams).Ensure | Should Be "Absent"
+                }
+
+                It "Returns false from the test method" {
+                    Test-TargetResource @testParams | Should Be $false
+                }
+
+                It "Starts the install from the set method" {
+                    Set-TargetResource @testParams
+                    Assert-MockCalled Start-Process
+                }
+            }
+
+            Context "Workflow Manager is not installed, but should be using UNC path" {
+                $testParams = @{
+                    Ensure = "Present"
+                    WebPIPath = "\\server\Install\WFFiles\bin\WebPICmd.exe"
+                    XMLFeedPath = "\\server\InstallWFFiles\Feeds\Latest\webproductlist.xml"
+                }
+
+                Mock -CommandName Get-Item -MockWith {
+                    return $null
+                }
+
+                Mock -CommandName Get-ChildItem -MockWith {
+                    return @()
+                }
+
+                Mock -CommandName Start-Process -MockWith {
+                    return @{
+                        ExitCode = 0
+                    }
+                }
+
+                Mock -CommandName Test-Path -MockWith {
+                    return $true
+                }
+
+                It "Returns that it is not installed from the get method" {
+                    (Get-TargetResource @testParams).Ensure | Should Be "Absent"
+                }
+
+                It "Returns false from the test method" {
+                    Test-TargetResource @testParams | Should Be $false
+                }
+
+                It "Starts the install from the set method" {
+                    Set-TargetResource @testParams
+                    Assert-MockCalled Start-Process
+                }
+            }
+
+            Context "Workflow Manager Client is not installed, but should be" {
+                $testParams = @{
+                    Ensure      = "Present"
+                    WebPIPath   = "C:/WFFiles/bin/WebPICmd.exe"
+                    XMLFeedPath = "C:/WFFiles/Feeds/Latest/webproductlist.xml"
+                    ComponentsToInstall = "ClientOnly"
+                }
+
+                Mock -CommandName Get-ChildItem -MockWith {
+                    return @()
+                }
+
+                Mock -CommandName Start-Process -MockWith {
+                    return @{
+                        ExitCode = 0
+                    }
+                }
+
+                Mock -CommandName Test-Path -MockWith {
+                    return $true
+                }
+
+                It "Returns that it is not installed from the get method" {
+                    (Get-TargetResource @testParams).Ensure | Should Be "Absent"
+                }
+
+                It "Returns false from the test method" {
+                    Test-TargetResource @testParams | Should Be $false
+                }
+
+                It "Starts the install from the set method" {
+                    Set-TargetResource @testParams
+                    Assert-MockCalled Start-Process
+                }
+            }
+
+            Context "Workflow Manager Client is not installed, but should be using UNC path" {
+                $testParams = @{
+                    Ensure      = "Present"
+                    WebPIPath   = "\\server\Install\WFFiles\bin\WebPICmd.exe"
+                    XMLFeedPath = "\\server\Install\WFFiles\Feeds\Latest\webproductlist.xml"
+                    ComponentsToInstall = "ClientOnly"
+                }
+
+                Mock -CommandName Get-Item -MockWith {
+                    return $null
                 }
 
                 Mock -CommandName Get-ChildItem -MockWith {
@@ -89,7 +205,36 @@ try
                 It "Returns true from the test method" {
                     Test-TargetResource @testParams | Should Be $true
                 }
-            }           
+            }
+
+            Context "Workflow Manager Client is installed and should be" {
+                $testParams = @{
+                    Ensure = "Present"
+                    WebPIPath = "C:/WFFiles/bin/WebPICmd.exe"
+                    XMLFeedPath = "C:/WFFiles/Feeds/Latest/webproductlist.xml"
+                    ComponentsToInstall = "ClientOnly"
+                }
+
+                Mock Get-ChildItem -MockWith {
+                    return @(
+                        @{
+                            Name = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Workflow Manager Client\1.0"
+                        }
+                    )
+                }
+
+                Mock -CommandName Test-Path -MockWith {
+                    return $true
+                }
+
+                It "Returns that it is installed from the get method" {
+                    (Get-TargetResource @testParams).Ensure | Should Be "Present"
+                }
+
+                It "Returns true from the test method" {
+                    Test-TargetResource @testParams | Should Be $true
+                }
+            }
 
             Context "Invalid path for installer was passed" {
                 $testParams = @{

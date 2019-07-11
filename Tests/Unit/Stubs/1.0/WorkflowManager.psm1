@@ -1,39 +1,53 @@
-function Get-WFFarm { 
+function Get-WFFarm {
   [CmdletBinding()]
 param()
 
- 
- } 
 
-function Get-SBNamespace { 
+ }
+
+ function Get-SBFarm {
   [CmdletBinding()]
 param()
 
- 
- } 
 
-function Get-SBClientConfiguration { 
+ }
+
+ function Get-SBMessageContainer {
+  [CmdletBinding()]
+param()
+
+
+ }
+
+function Get-SBNamespace {
+  [CmdletBinding()]
+param()
+
+
+ }
+
+function Get-SBClientConfiguration {
   [CmdletBinding()]
 param(
   [array]
   ${Namespaces}
 )
 
- 
+
 }
 
-function Remove-SBHost { 
+function Remove-SBHost {
   [CmdletBinding()]
 param()
 
- 
+
 }
 
-function Remove-WFHost { 
+function Remove-WFHost {
   [CmdletBinding()]
 param()
 
- 
+
 }
 
 function New-SBFarm {
@@ -41,6 +55,15 @@ function New-SBFarm {
 param(
     [string]
     ${SBFarmDBConnectionString},
+
+    [string]
+    ${GatewayDBConnectionString},
+
+    [string]
+    ${MessageContainerDBConnectionString},
+
+    [string]
+    ${RunAsAccount},
 
     [System.Security.SecureString]
     ${CertificateAutoGenerationKey}
@@ -70,6 +93,9 @@ param(
     [string]
     ${Name},
 
+    [string]
+    ${AddressingScheme},
+
     [array]
     ${ManageUsers}
 )
@@ -80,6 +106,15 @@ function New-WFFarm {
 param(
     [string]
     ${WFFarmDBConnectionString},
+
+    [string]
+    ${InstanceDBConnectionString},
+
+    [string]
+    ${ResourceDBConnectionString},
+
+    [string]
+    ${RunAsAccount},
 
     [System.Security.SecureString]
     ${CertificateAutoGenerationKey}

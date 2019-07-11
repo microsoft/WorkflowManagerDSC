@@ -3,7 +3,7 @@
     This example shows how to configure a Workflow Manager farm on a server.
 #>
 
-    Configuration Example 
+    Configuration Example
     {
         param()
 
@@ -12,12 +12,11 @@
         $SetupAccount = Get-Credential
         WorkflowManagerFarm FarmConfig
         {
-            Ensure = "Present"
-            DatabaseServer = "localhost"
+            Ensure                = "Present"
+            DatabaseServer        = "localhost"
             CertAutoGenerationKey = $SetupAccount
-            RunAsPassword = $SetupAccount
-            FarmAccount = $SetupAccount
-            SBNamespace = "ServiceBus"
-            PsDscRunAsCredential = $SetupAccount
+            RunAsAccount          = $SetupAccount
+            SBNamespace           = "ServiceBus"
+            PsDscRunAsCredential  = $SetupAccount
         }
     }

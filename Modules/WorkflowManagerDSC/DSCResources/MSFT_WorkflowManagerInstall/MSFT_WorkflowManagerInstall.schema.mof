@@ -5,4 +5,5 @@ class MSFT_WorkflowManagerInstall : OMI_BaseResource
     [Key, Description("Set to 'present' to specificy that the product should be installed."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
     [Required, Description("Path to WebpiCmd.exe")] String WebPIPath;
     [Required, Description("Path to Feeds XML")] String XMLFeedPath;
+    [Write, Description("Specifies if all components or just the client needs to be installed"), ValueMap{"All","ClientOnly"}, Values{"All","ClientOnly"}] String ComponentsToInstall;
 };
