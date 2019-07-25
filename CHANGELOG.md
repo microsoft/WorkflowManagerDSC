@@ -1,5 +1,11 @@
 # Change log for WorkflowManagerDsc
 
+## Unreleased
+
+* WorkflowManagerInstall
+  * Added ability to install Workflow Manager Refresh package (including
+    CU4), CU5 and Service Bus v1.1 with TLS 1.2 update.
+
 ## 1.2.0.1
 
 * WorkflowManagerFarm

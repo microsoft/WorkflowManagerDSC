@@ -156,38 +156,172 @@ function Set-TargetResource
         Set-WMDscZoneMap -Server $serverName
     }
 
+    Write-Verbose -Message 'Reading XMLFeedPath file'
+    [xml]$xmlFile = Get-Content -Path $XMLFeedPath
+
     if ($ComponentsToInstall -eq "All")
     {
         # Install all Workflow Manager components
         Write-Verbose -Message "Installing all Workflow Manager components"
-        $arguments = "/Install /Products:WorkflowManager /XML:" + $XMLFeedPath + " /AcceptEULA /SuppressPostFinish"
+
+        # If C:\Program Files\Workflow Manager folder exists, install will fail
+        # Throw error is the folder exists and contains less than 5 files.
+        if ((Test-Path -Path 'C:\Program Files\Workflow Manager') -and `
+            ((Get-ChildItem -Path 'C:\Program Files\Workflow Manager' -Recurse).Count -le 5))
+        {
+            throw 'Folder C:\Program Files\Workflow Manager exists. Please make sure this folder is removed.'
+        }
+
+        if ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'WorkflowManagerRefresh' }))
+        {
+            Write-Verbose -Message 'Installing Workflow Manager Refresh package'
+
+            if ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'ServiceBus_1_1_TLS_1_2' }))
+            {
+                Write-Verbose -Message 'Install package contains Service Bus v1.1 TLS v1.2 update files, installing.....'
+                $result = Start-WMInstall -ComponentName 'ServiceBus_1_1_TLS_1_2' `
+                                          -WebPIPath $WebPIPath `
+                                          -XMLFeedPath $XMLFeedPath
+
+                switch ($result.ExitCode) {
+                    0 {
+                        Write-Verbose -Message "Installation of the Service Bus v1.1 TLS v1.2 update succeeded."
+                    }
+                    Default {
+                        throw ("The Service Bus v1.1 TLS v1.2 update installation failed. " + `
+                               "Exit code '$($result.ExitCode)' was returned.")
+                    }
+                }
+            }
+
+            Write-Verbose -Message 'Install package contains Workflow Manager Refresh files, installing.....'
+            $result = Start-WMInstall -ComponentName 'WorkflowManagerRefresh' `
+                                      -WebPIPath $WebPIPath `
+                                      -XMLFeedPath $XMLFeedPath
+
+            switch ($result.ExitCode) {
+                0 {
+                    Write-Verbose -Message "Installation of the Workflow Manager Refresh succeeded."
+                }
+                Default {
+                    throw ("The Workflow Manager Refresh installation failed. " + `
+                           "Exit code '$($result.ExitCode)' was returned.")
+                }
+            }
+
+            if ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'WorkflowCU5' }))
+            {
+                Write-Verbose -Message 'Install package contains Workflow Manager CU5 files, installing.....'
+                $result = Start-WMInstall -ComponentName 'WorkflowCU5' `
+                                          -WebPIPath $WebPIPath `
+                                          -XMLFeedPath $XMLFeedPath
+
+                switch ($result.ExitCode) {
+                    0 {
+                        Write-Verbose -Message "Installation of the Workflow Manager CU5 succeeded."
+                    }
+                    Default {
+                        throw ("The Workflow Manager CU5 installation failed. " + `
+                               "Exit code '$($result.ExitCode)' was returned.")
+                    }
+                }
+            }
+        }
+        elseif ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'WorkflowManager' }))
+        {
+            Write-Verbose -Message 'Installing Workflow Manager RTM package'
+
+            Write-Verbose -Message 'Install package contains Workflow Manager RTM files, installing.....'
+            $result = Start-WMInstall -ComponentName 'WorkflowManager' `
+                                      -WebPIPath $WebPIPath `
+                                      -XMLFeedPath $XMLFeedPath
+
+            switch ($result.ExitCode) {
+                0 {
+                    Write-Verbose -Message "Installation of the Workflow Manager RTM succeeded."
+                }
+                Default {
+                    throw ("The Workflow Manager RTM installation failed. " + `
+                           "Exit code '$($result.ExitCode)' was returned.")
+                }
+            }
+        }
+        else
+        {
+            throw 'Install packages does not contain Workflow Manager RTM or Refresh files. Aborting!'
+        }
     }
     else
     {
         # Install the Workflow Manager Client component
-        Write-Verbose -Message "Installing the Workflow Manager Client components"
-        $arguments = "/Install /Products:WorkflowClient /XML:" + $XMLFeedPath + " /AcceptEULA /SuppressPostFinish"
+        Write-Verbose -Message "Installing the Workflow Manager Client component"
+
+        if ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'WorkflowClientCU4' }))
+        {
+            Write-Verbose -Message 'Installing Workflow Manager Client incl CU 4 package'
+
+            Write-Verbose -Message 'Install package contains Workflow Manager Client incl CU4 files, installing.....'
+            $result = Start-WMInstall -ComponentName 'WorkflowClientCU4' `
+                                      -WebPIPath $WebPIPath `
+                                      -XMLFeedPath $XMLFeedPath
+
+            switch ($result.ExitCode) {
+                0 {
+                    Write-Verbose -Message "Installation of the Workflow Manager Client incl CU4 succeeded."
+                }
+                Default {
+                    throw ("The Workflow Manager Client incl CU4 installation failed. " + `
+                           "Exit code '$($result.ExitCode)' was returned.")
+                }
+            }
+
+            if ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'WorkflowCU5' }))
+            {
+                Write-Verbose -Message 'Install package contains Workflow Manager CU5 files, installing.....'
+                $result = Start-WMInstall -ComponentName 'WorkflowCU5' `
+                                          -WebPIPath $WebPIPath `
+                                          -XMLFeedPath $XMLFeedPath
+
+                switch ($result.ExitCode) {
+                    0 {
+                        Write-Verbose -Message "Installation of the Workflow Manager CU5 succeeded."
+                    }
+                    Default {
+                        throw ("The Workflow Manager CU5 installation failed. " + `
+                               "Exit code '$($result.ExitCode)' was returned.")
+                    }
+                }
+            }
+        }
+        elseif ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'WorkflowClient' }))
+        {
+            Write-Verbose -Message 'Installing Workflow Manager Client RTM package'
+
+            Write-Verbose -Message 'Install package contains Workflow Manager Client RTM files, installing.....'
+            $result = Start-WMInstall -ComponentName 'WorkflowClient' `
+                                      -WebPIPath $WebPIPath `
+                                      -XMLFeedPath $XMLFeedPath
+
+            switch ($result.ExitCode) {
+                0 {
+                    Write-Verbose -Message "Installation of the Workflow Manager Client RTM succeeded."
+                }
+                Default {
+                    throw ("The Workflow Manager Client RTM installation failed. " + `
+                           "Exit code '$($result.ExitCode)' was returned.")
+                }
+            }
+        }
+        else
+        {
+            throw 'Install packages does not contain Workflow Manager Client RTM or Client incl CU4 files. Aborting!'
+        }
     }
-    $installer = Start-Process -FilePath $WebPIPath `
-                               -ArgumentList $arguments `
-                               -Wait `
-                               -NoNewWindow `
-                               -PassThru
 
     if ($uncInstall -eq $true)
     {
         Write-Verbose -Message "Removing added path from the Local Intranet Zone"
         Remove-WMDscZoneMap -ServerName $serverName
-    }
-
-    switch ($installer.ExitCode) {
-        0 {
-            Write-Verbose -Message "Installation of the Workflow Manager succeeded."
-         }
-        Default {
-            throw ("The Workflow Manager installation failed. Exit code " + `
-                   "'$($installer.ExitCode)' was returned.")
-        }
     }
 }
 
@@ -230,3 +364,29 @@ function Test-TargetResource
 }
 
 Export-ModuleMember -Function *-TargetResource
+
+function Start-WMInstall
+{
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $ComponentName,
+
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $WebPIPath,
+
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $XMLFeedPath
+    )
+
+    $arguments = "/Install /Products:$ComponentName /XML:$XMLFeedPath /AcceptEULA /SuppressPostFinish"
+    $installer = Start-Process -FilePath $WebPIPath `
+                               -ArgumentList $arguments `
+                               -Wait `
+                               -NoNewWindow `
+                               -PassThru
+    return $installer
+}
