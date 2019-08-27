@@ -12,7 +12,7 @@
 # RootModule = ''
 
 # Version number of this module.
-ModuleVersion = '1.2.0.1'
+ModuleVersion = '1.3.0.0'
 
 # ID used to uniquely identify this module
 GUID = 'e08f64b7-c09a-4f65-bfb8-3f620906b107'
@@ -24,7 +24,7 @@ Author = 'Microsoft Corporation'
 CompanyName = 'Microsoft Corporation'
 
 # Copyright statement for this module
-Copyright = '(c) 2017 Microsoft. All rights reserved.'
+Copyright = '(c) 2019 Microsoft. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = 'The WorkflowManagerDsc module provides the ability to install and configure a Workflow Manager Farm.'
@@ -100,16 +100,22 @@ PrivateData = @{
         Tags = @('DesiredStateConfiguration', 'DSC', 'DSCResourceKit', 'DSCResource')
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/NikCharlebois/WorkflowManagerDsc/blob/master/LICENSE'
+        LicenseUri = 'https://github.com/Microsoft/WorkflowManagerDsc/blob/master/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://github.com/NikCharlebois/WorkflowManagerDsc'
+        ProjectUri = 'https://github.com/Microsoft/WorkflowManagerDsc'
 
         # A URL to an icon representing this module.
         # IconUri = ''
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## 1.3
+
+        * WorkflowManagerInstall
+          * Added ability to install Workflow Manager Refresh package (including
+            CU4), CU5 and Service Bus v1.1 with TLS 1.2 update.
+
         ## 1.2.0.1
 
         * WorkflowManagerFarm

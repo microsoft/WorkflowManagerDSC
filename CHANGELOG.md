@@ -1,6 +1,6 @@
 # Change log for WorkflowManagerDsc
 
-## Unreleased
+## 1.3
 
 * WorkflowManagerInstall
   * Added ability to install Workflow Manager Refresh package (including
