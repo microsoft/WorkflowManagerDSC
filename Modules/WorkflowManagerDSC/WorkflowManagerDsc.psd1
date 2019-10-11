@@ -12,19 +12,19 @@
 # RootModule = ''
 
 # Version number of this module.
-ModuleVersion = '1.3.0.0'
+ModuleVersion = '1.3.1.0'
 
 # ID used to uniquely identify this module
-GUID = 'e08f64b7-c09a-4f65-bfb8-3f620906b107'
+GUID = '08bb95ed-7597-4501-8d56-2724687c9768'
 
 # Author of this module
-Author = 'Microsoft Corporation'
+Author = 'Ilian Nilsson'
 
 # Company or vendor of this module
-CompanyName = 'Microsoft Corporation'
+CompanyName = 'Visity AB'
 
 # Copyright statement for this module
-Copyright = '(c) 2019 Microsoft. All rights reserved.'
+Copyright = '(c) 2019 Visity AB. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = 'The WorkflowManagerDsc module provides the ability to install and configure a Workflow Manager Farm.'
@@ -100,16 +100,21 @@ PrivateData = @{
         Tags = @('DesiredStateConfiguration', 'DSC', 'DSCResourceKit', 'DSCResource')
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/Microsoft/WorkflowManagerDsc/blob/master/LICENSE'
+        LicenseUri = 'https://github.com/IlleNilsson/WorkflowManagerDsc/blob/master/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://github.com/Microsoft/WorkflowManagerDsc'
+        ProjectUri = 'https://github.com/IlleNilsson/WorkflowManagerDsc'
 
         # A URL to an icon representing this module.
         # IconUri = ''
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## 1.3.1
+
+        * WorkflowManagerInstall
+          * Workaround for faulty references to Microsoft.ServiceBus.dll, 1.8.0.0 
+          in WorkflowManager PowerShell module.
         ## 1.3
 
         * WorkflowManagerInstall
