@@ -259,7 +259,8 @@ function Set-TargetResource
                 }
                 if ($null -eq ($dependentAssembly = $assemblyBinding.SelectSingleNode(
                     "./*[local-name() = '$dependentAssemblyElemName' 
-                        and ./*[local-name() = '$assemblyIdentityElemName' and ./@name='$msServiceBusAssemblyName'
+                        and ./*[local-name() = '$assemblyIdentityElemName'
+                        and ./@name='$msServiceBusAssemblyName'
                         and ./@publicKeyToken = '$msServiceBusPublicKeyToken'
                         and ./@culture = '$msServiceBusCulture']]"))) {
                     
