@@ -241,7 +241,6 @@ function Set-TargetResource
                    -InstanceDBConnectionString $WFINDBConnstring `
                    -ResourceDBConnectionString $WFREDBConnstring `
                    -RunAsAccount $RunAsAccount.UserName `
-                   -EnableHttpPort $EnableHttpPort `
                    -CertificateAutoGenerationKey $CertAutoGenerationKey.Password
 
         $SBConfig = Get-SBClientConfiguration -Namespaces $SBNamespace
