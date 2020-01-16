@@ -1,6 +1,6 @@
 # Change log for WorkflowManagerDsc
 
-## Unreleased
+## 1.4
 
 * WorkflowManagerInstall
   * Added logic to only add the EnableFirewallRules parameter to Add-SBHost
