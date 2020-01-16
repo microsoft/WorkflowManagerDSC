@@ -65,7 +65,7 @@ function Get-TargetResource
 
     Confirm-WmfDscEnvironmentVariables
 
-    $result = @{}
+    $result = @{ }
     try
     {
         $WFFarm = Get-WFFarm
@@ -214,53 +214,61 @@ function Set-TargetResource
 
     if ($Ensure.ToLower() -eq "present")
     {
-        $SBFADBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer,$ServiceBusFarmDB
-        $SBGWDBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer,$ServiceBusGatewayDB
-        $SBMCDBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer,$ServiceBusMessageContainerDB
+        $SBFADBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer, $ServiceBusFarmDB
+        $SBGWDBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer, $ServiceBusGatewayDB
+        $SBMCDBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer, $ServiceBusMessageContainerDB
 
         New-SBFarm -SBFarmDBConnectionString $SBFADBConnstring `
-                   -GatewayDBConnectionString $SBGWDBConnstring `
-                   -MessageContainerDBConnectionString $SBMCDBConnstring `
-                   -RunAsAccount $RunAsAccount.UserName `
-                   -CertificateAutoGenerationKey $CertAutoGenerationKey.Password
+            -GatewayDBConnectionString $SBGWDBConnstring `
+            -MessageContainerDBConnectionString $SBMCDBConnstring `
+            -RunAsAccount $RunAsAccount.UserName `
+            -CertificateAutoGenerationKey $CertAutoGenerationKey.Password
 
-        Add-SBHost -SBFarmDBConnectionString $SBFADBConnstring `
-                   -RunAsPassword $RunAsAccount.Password `
-                   -EnableFirewallRules $EnableFirewallRules `
-                   -CertificateAutoGenerationKey $CertAutoGenerationKey.Password
+        $params = @{
+            SBFarmDBConnectionString     = $SBFADBConnstring
+            RunAsPassword                = $RunAsAccount.Password
+            CertificateAutoGenerationKey = $CertAutoGenerationKey.Password
+        }
+
+        if ($EnableFirewallRules -eq $true)
+        {
+            $params.EnableFirewallRules = $EnableFirewallRules
+        }
+
+        Add-SBHost @params
 
         New-SBNamespace -Name $SBNamespace `
-                        -AddressingScheme 'Path' `
-                        -ManageUsers $RunAsAccount.UserName
+            -AddressingScheme 'Path' `
+            -ManageUsers $RunAsAccount.UserName
 
-        $WFFADBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer,$WorkflowManagerFarmDB
-        $WFINDBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer,$WorkflowManagerInstanceDB
-        $WFREDBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer,$WorkflowManagerResourceDB
+        $WFFADBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer, $WorkflowManagerFarmDB
+        $WFINDBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer, $WorkflowManagerInstanceDB
+        $WFREDBConnstring = "Data Source={0};Initial Catalog={1};Integrated Security=True;Encrypt=False" -f $DatabaseServer, $WorkflowManagerResourceDB
 
         New-WFFarm -WFFarmDBConnectionString $WFFADBConnstring `
-                   -InstanceDBConnectionString $WFINDBConnstring `
-                   -ResourceDBConnectionString $WFREDBConnstring `
-                   -RunAsAccount $RunAsAccount.UserName `
-                   -CertificateAutoGenerationKey $CertAutoGenerationKey.Password
+            -InstanceDBConnectionString $WFINDBConnstring `
+            -ResourceDBConnectionString $WFREDBConnstring `
+            -RunAsAccount $RunAsAccount.UserName `
+            -CertificateAutoGenerationKey $CertAutoGenerationKey.Password
 
         $SBConfig = Get-SBClientConfiguration -Namespaces $SBNamespace
 
         if ($EnableHttpPort)
         {
             Add-WFHost -WFFarmDBConnectionString $WFFADBConnstring `
-                       -RunAsPassword $RunAsAccount.Password `
-                       -EnableFirewallRules $EnableFirewallRules `
-                       -CertificateAutoGenerationKey $CertAutoGenerationKey.Password `
-                       -SBClientConfiguration $SBConfig `
-                       -EnableHttpPort
+                -RunAsPassword $RunAsAccount.Password `
+                -EnableFirewallRules $EnableFirewallRules `
+                -CertificateAutoGenerationKey $CertAutoGenerationKey.Password `
+                -SBClientConfiguration $SBConfig `
+                -EnableHttpPort
         }
         else
         {
             Add-WFHost -WFFarmDBConnectionString $WFFADBConnstring `
-                       -RunAsPassword $RunAsAccount.Password `
-                       -EnableFirewallRules $EnableFirewallRules `
-                       -CertificateAutoGenerationKey $CertAutoGenerationKey.Password `
-                       -SBClientConfiguration $SBConfig
+                -RunAsPassword $RunAsAccount.Password `
+                -EnableFirewallRules $EnableFirewallRules `
+                -CertificateAutoGenerationKey $CertAutoGenerationKey.Password `
+                -SBClientConfiguration $SBConfig
         }
     }
     else
