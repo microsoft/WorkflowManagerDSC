@@ -1,5 +1,16 @@
 # Change log for WorkflowManagerDsc
 
+## Unreleased
+
+* WorkflowManagerInstall
+  * Added logic to only add the EnableFirewallRules parameter to Add-SBHost
+    if the value is true. This to prevent issues where the firewall isn't
+    enabled on a server.
+  * Removed the CU5 install for the Workflow Manager Client. The update
+    is not applicable for the client.
+  * Workaround for faulty references to Microsoft.ServiceBus.dll, 1.8.0.0
+    in WorkflowManager PowerShell module.
+
 ## 1.3
 
 * WorkflowManagerInstall

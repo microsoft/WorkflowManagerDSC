@@ -4,7 +4,7 @@
 .vs
 .psproj
 .sln
-Modules/OfficeOnlineServerDsc/DscResource.Tests
-Modules/OfficeOnlineServerDsc/DscResource.Tests/*
+Modules/WorkflowManagerDsc/DscResource.Tests
+Modules/WorkflowManagerDsc/DscResource.Tests/*
 node_modules
 node_modules/*
