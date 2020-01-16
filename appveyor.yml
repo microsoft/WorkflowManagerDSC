@@ -1,16 +1,16 @@
-version: 1.0.0.{build}
+version: 1.4.0.{build}
 
 install:
     - git clone -b dev https://github.com/NikCharlebois/DscResource.Tests
 
-    - npm --silent install  
+    - npm --silent install
 
     - ps: |
         $moduleName = 'WorkflowManagerDsc'
         $mainModuleFolder = "Modules\$moduleName"
         Import-Module -Name "$env:APPVEYOR_BUILD_FOLDER\DscResource.Tests\AppVeyor.psm1"
         Invoke-AppveyorInstallTask
-        
+
 build: off
 
 test_script:
