@@ -1,6 +1,8 @@
-﻿$Script:UninstallPathManager = "SOFTWARE\Microsoft\Workflow Manager"
-$Script:UninstallPathClient = "SOFTWARE\Microsoft\Workflow Manager Client"
+﻿$script:UninstallPathManager = "SOFTWARE\Microsoft\Workflow Manager"
+$script:UninstallPathServiceBus = "SOFTWARE\Microsoft\Service Bus"
+$script:UninstallPathClient = "SOFTWARE\Microsoft\Workflow Manager Client"
 $script:InstallKeyPattern = "[0-9].[0-9]"
+$script:UninstallRegKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
 
 function Get-TargetResource
 {
@@ -58,6 +60,12 @@ function Get-TargetResource
         $_.Name -match $matchPath
     }
 
+    $matchPath = "HKEY_LOCAL_MACHINE\\$($Script:UninstallPathServiceBus.Replace('\','\\'))" + `
+        "\\$script:InstallKeyPattern"
+    $wmfPathServiceBus = Get-ChildItem -Path "HKLM:\$Script:UninstallPathServiceBus" -ErrorAction SilentlyContinue | Where-Object -FilterScript {
+        $_.Name -match $matchPath
+    }
+
     $matchPath = "HKEY_LOCAL_MACHINE\\$($Script:UninstallPathClient.Replace('\','\\'))" + `
         "\\$script:InstallKeyPattern"
     $wmfPathClient = Get-ChildItem -Path "HKLM:\$Script:UninstallPathClient" -ErrorAction SilentlyContinue | Where-Object -FilterScript {
@@ -71,7 +79,7 @@ function Get-TargetResource
         $localEnsure = "Present"
     }
 
-    if ($null -ne $wmfPathManager)
+    if ($null -ne $wmfPathManager -and $null -ne $wmfPathServiceBus)
     {
         $installedComponent = "All"
         $localEnsure = "Present"
@@ -175,29 +183,6 @@ function Set-TargetResource
         if ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'WorkflowManagerRefresh' }))
         {
             Write-Verbose -Message 'Installing Workflow Manager Refresh package'
-
-            if ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'ServiceBus_1_1_TLS_1_2' }))
-            {
-                Write-Verbose -Message 'Install package contains Service Bus v1.1 TLS v1.2 update files, installing.....'
-                $result = Start-WMInstall -ComponentName 'ServiceBus_1_1_TLS_1_2' `
-                    -WebPIPath $WebPIPath `
-                    -XMLFeedPath $XMLFeedPath
-
-                switch ($result.ExitCode)
-                {
-                    0
-                    {
-                        Write-Verbose -Message "Installation of the Service Bus v1.1 TLS v1.2 update succeeded."
-                    }
-                    Default
-                    {
-                        throw ("The Service Bus v1.1 TLS v1.2 update installation failed. " + `
-                                "Exit code '$($result.ExitCode)' was returned.")
-                    }
-                }
-            }
-
-            Write-Verbose -Message 'Install package contains Workflow Manager Refresh files, installing.....'
             $result = Start-WMInstall -ComponentName 'WorkflowManagerRefresh' `
                 -WebPIPath $WebPIPath `
                 -XMLFeedPath $XMLFeedPath
@@ -215,12 +200,18 @@ function Set-TargetResource
                 }
             }
 
-            if ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'WorkflowCU5' }))
+            $CU5Info = $xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'WorkflowCU5' }
+            if ($null -ne $CU5Info)
             {
+                $cuInstallPath = Join-Path -Path (Split-Path -Path $XMLFeedPath -Parent) -ChildPath $CU5Info.installers.installer.installerFile.relativeInstallerURL -Resolve
+
                 Write-Verbose -Message 'Install package contains Workflow Manager CU5 files, installing.....'
-                $result = Start-WMInstall -ComponentName 'WorkflowCU5' `
-                    -WebPIPath $WebPIPath `
-                    -XMLFeedPath $XMLFeedPath
+                $arguments = "/quiet"
+                $result = Start-Process -FilePath $cuInstallPath `
+                    -ArgumentList $arguments `
+                    -Wait `
+                    -NoNewWindow `
+                    -PassThru
 
                 switch ($result.ExitCode)
                 {
@@ -236,58 +227,70 @@ function Set-TargetResource
                 }
             }
 
-            ### Workaround for reference bug of Microsoft.ServiceBus.dll,
-            ### reference is to version 1.8.0.0 but should be to 2.1.0.0
+            if ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'ServiceBus_1_1_TLS_1_2' }))
+            {
+                Write-Verbose -Message 'Install package contains updated Service Bus v1.1 with TLS v1.2 support package, installing.....'
 
-            Add-Type -AssemblyName 'System.EnterpriseServices'
+                Write-Verbose -Message 'Removing old Service Bus v1.1 package'
+                $uninstallString = (Get-ChildItem -Path $script:UninstallRegKey | Get-ItemProperty -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq 'Service Bus 1.1' }).UninstallString
+                $cmd = $uninstallString -split " "
+                $result = Start-Process -FilePath $cmd[0] `
+                    -ArgumentList "$($cmd[1]) /quiet" -Wait `
+                    -NoNewWindow `
+                    -PassThru
 
-            $publish = New-Object System.EnterpriseServices.Internal.Publish
-
-            $publish.GacInstall("$Env:ProgramFiles\Workflow Manager\1.0\Workflow\WFWebRoot\bin\Microsoft.ServiceBus.dll") # 1.8.0.0
-            $publish.GacInstall("$Env:ProgramFiles\Service Bus\1.1\Microsoft.ServiceBus.dll") # 2.1.0.0
-
-            Get-ChildItem "$Env:SystemRoot\Microsoft.NET" -Filter 'machine.config' -Recurse | ForEach-Object -Process {
-                $configuration = [xml](Get-Content $_.FullName)
-                $nsManager = New-Object 'System.Xml.XmlNamespaceManager' @($configuration.NameTable)
-                $nameSpace = 'urn:schemas-microsoft-com:asm.v1'
-                $runtime = $configuration.SelectSingleNode('//configuration/runtime', $nsManager)
-                $assemblyBindingElemName = 'assemblyBinding'
-                $dependentAssemblyElemName = 'dependentAssembly'
-                $assemblyIdentityElemName = 'assemblyIdentity'
-                $bindingRedirectElemName = 'bindingRedirect'
-                $msServiceBusAssemblyName = 'Microsoft.ServiceBus'
-                $msServiceBusPublicKeyToken = '31bf3856ad364e35'
-                $msServiceBusCulture = 'en-us'
-                $msServiceBusAssemblyOldVersion = '1.8.0.0'
-                $msServiceBusAssemblyNewVersion = '2.1.0.0'
-
-                if ($null -eq ($assemblyBinding = $runtime.SelectSingleNode(
-                            "./*[local-name() = '$assemblyBindingElemName']")))
+                switch ($result.ExitCode)
                 {
-
-                    $assemblyBinding = $runtime.AppendChild($configuration.CreateElement($assemblyBindingElemName, $nameSpace))
-                }
-                if ($null -eq ($dependentAssembly = $assemblyBinding.SelectSingleNode(
-                            "./*[local-name() = '$dependentAssemblyElemName'
-                        and ./*[local-name() = '$assemblyIdentityElemName'
-                        and ./@name='$msServiceBusAssemblyName'
-                        and ./@publicKeyToken = '$msServiceBusPublicKeyToken'
-                        and ./@culture = '$msServiceBusCulture']]")))
-                {
-
-                    $dependentAssembly = $assemblyBinding.AppendChild($configuration.CreateElement($dependentAssemblyElemName, $nameSpace))
-                    $assemblyIdentity = $dependentAssembly.AppendChild($configuration.CreateElement($assemblyIdentityElemName, $nameSpace))
-                    $assemblyIdentity.SetAttribute('name', $msServiceBusAssemblyName)
-                    $assemblyIdentity.SetAttribute('publicKeyToken', $msServiceBusPublicKeyToken)
-                    $assemblyIdentity.SetAttribute('culture', $msServiceBusCulture)
-                    $bindingRedirect = $assemblyIdentity.AppendChild($configuration.CreateElement($bindingRedirectElemName, $nameSpace))
-                    $bindingRedirect.SetAttribute('oldVersion', $msServiceBusAssemblyOldVersion)
-                    $bindingRedirect.SetAttribute('newVersion', $msServiceBusAssemblyNewVersion)
+                    0
+                    {
+                        Write-Verbose -Message "Removal of the Service Bus v1.1 succeeded."
+                    }
+                    Default
+                    {
+                        throw ("Removal of the Service Bus v1.1 package failed. " + `
+                                "Exit code '$($result.ExitCode)' was returned.")
+                    }
                 }
 
-                $configuration.Save($_.FullName)
+                Write-Verbose -Message 'Removing old Windows Fabric package'
+                $uninstallString = (Get-ChildItem -Path $script:UninstallRegKey | Get-ItemProperty -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq 'Windows Fabric' }).UninstallString
+                $cmd = $uninstallString -split " "
+                $result = Start-Process -FilePath $cmd[0] `
+                    -ArgumentList "$($cmd[1]) /quiet" -Wait `
+                    -NoNewWindow `
+                    -PassThru
+
+                switch ($result.ExitCode)
+                {
+                    0
+                    {
+                        Write-Verbose -Message "Removal of the Service Bus v1.1 succeeded."
+                    }
+                    Default
+                    {
+                        throw ("Removal of the Service Bus v1.1 package failed. " + `
+                                "Exit code '$($result.ExitCode)' was returned.")
+                    }
+                }
+
+                Write-Verbose -Message 'Installing updated Service Bus v1.1 with TLS v1.2 support package, including Service Fabric'
+                $result = Start-WMInstall -ComponentName 'ServiceBus_1_1_TLS_1_2' `
+                    -WebPIPath $WebPIPath `
+                    -XMLFeedPath $XMLFeedPath
+
+                switch ($result.ExitCode)
+                {
+                    0
+                    {
+                        Write-Verbose -Message "Installation of the Service Bus v1.1 TLS v1.2 update succeeded."
+                    }
+                    Default
+                    {
+                        throw ("The Service Bus v1.1 TLS v1.2 update installation failed. " + `
+                                "Exit code '$($result.ExitCode)' was returned.")
+                    }
+                }
             }
-            ### End Workaround
         }
         elseif ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'WorkflowManager' }))
         {
