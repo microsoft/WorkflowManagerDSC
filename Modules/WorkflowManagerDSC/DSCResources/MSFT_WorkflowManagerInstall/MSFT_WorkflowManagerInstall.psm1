@@ -93,7 +93,6 @@ function Get-TargetResource
     }
 }
 
-
 function Set-TargetResource
 {
     [CmdletBinding()]
@@ -329,7 +328,6 @@ function Set-TargetResource
                         and ./@publicKeyToken = '$msServiceBusPublicKeyToken'
                         and ./@culture = '$msServiceBusCulture']]")))
                 {
-
                     $dependentAssembly = $assemblyBinding.AppendChild($configuration.CreateElement($dependentAssemblyElemName, $nameSpace))
                     $assemblyIdentity = $dependentAssembly.AppendChild($configuration.CreateElement($assemblyIdentityElemName, $nameSpace))
                     $assemblyIdentity.SetAttribute('name', $msServiceBusAssemblyName)
@@ -432,7 +430,6 @@ function Set-TargetResource
         Remove-WMDscZoneMap -ServerName $serverName
     }
 }
-
 
 function Test-TargetResource
 {
