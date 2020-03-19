@@ -291,6 +291,58 @@ function Set-TargetResource
                     }
                 }
             }
+
+            ### Workaround for reference bug of Microsoft.ServiceBus.dll,
+            ### reference is to version 1.8.0.0 but should be to 2.1.0.0
+            Add-Type -AssemblyName 'System.EnterpriseServices'
+
+            $publish = New-Object System.EnterpriseServices.Internal.Publish
+
+            $publish.GacInstall("$Env:ProgramFiles\Workflow Manager\1.0\Workflow\WFWebRoot\bin\Microsoft.ServiceBus.dll") # 1.8.0.0
+            $publish.GacInstall("$Env:ProgramFiles\Service Bus\1.1\Microsoft.ServiceBus.dll") # 2.1.0.0
+
+            Get-ChildItem -Path "$Env:SystemRoot\Microsoft.NET" -Filter 'machine.config' -Recurse | ForEach-Object -Process {
+                $configuration = [xml](Get-Content $_.FullName)
+                $nsManager = New-Object 'System.Xml.XmlNamespaceManager' @($configuration.NameTable)
+                $nameSpace = 'urn:schemas-microsoft-com:asm.v1'
+                $runtime = $configuration.SelectSingleNode('//configuration/runtime', $nsManager)
+                $assemblyBindingElemName = 'assemblyBinding'
+                $dependentAssemblyElemName = 'dependentAssembly'
+                $assemblyIdentityElemName = 'assemblyIdentity'
+                $bindingRedirectElemName = 'bindingRedirect'
+                $msServiceBusAssemblyName = 'Microsoft.ServiceBus'
+                $msServiceBusPublicKeyToken = '31bf3856ad364e35'
+                $msServiceBusCulture = 'en-us'
+                $msServiceBusAssemblyOldVersion = '1.8.0.0'
+                $msServiceBusAssemblyNewVersion = '2.1.0.0'
+
+                if ($null -eq ($assemblyBinding = $runtime.SelectSingleNode(
+                            "./*[local-name() = '$assemblyBindingElemName']")))
+                {
+
+                    $assemblyBinding = $runtime.AppendChild($configuration.CreateElement($assemblyBindingElemName, $nameSpace))
+                }
+                if ($null -eq ($dependentAssembly = $assemblyBinding.SelectSingleNode(
+                            "./*[local-name() = '$dependentAssemblyElemName'
+                        and ./*[local-name() = '$assemblyIdentityElemName'
+                        and ./@name='$msServiceBusAssemblyName'
+                        and ./@publicKeyToken = '$msServiceBusPublicKeyToken'
+                        and ./@culture = '$msServiceBusCulture']]")))
+                {
+
+                    $dependentAssembly = $assemblyBinding.AppendChild($configuration.CreateElement($dependentAssemblyElemName, $nameSpace))
+                    $assemblyIdentity = $dependentAssembly.AppendChild($configuration.CreateElement($assemblyIdentityElemName, $nameSpace))
+                    $assemblyIdentity.SetAttribute('name', $msServiceBusAssemblyName)
+                    $assemblyIdentity.SetAttribute('publicKeyToken', $msServiceBusPublicKeyToken)
+                    $assemblyIdentity.SetAttribute('culture', $msServiceBusCulture)
+                    $bindingRedirect = $assemblyIdentity.AppendChild($configuration.CreateElement($bindingRedirectElemName, $nameSpace))
+                    $bindingRedirect.SetAttribute('oldVersion', $msServiceBusAssemblyOldVersion)
+                    $bindingRedirect.SetAttribute('newVersion', $msServiceBusAssemblyNewVersion)
+                }
+
+                $configuration.Save($_.FullName)
+            }
+            ### End Workaround
         }
         elseif ($null -ne ($xmlFile.ChildNodes.entry | Where-Object -FilterScript { $_.productId -eq 'WorkflowManager' }))
         {
