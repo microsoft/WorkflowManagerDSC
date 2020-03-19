@@ -2,14 +2,19 @@
 
 ## 1.4
 
-* WorkflowManagerInstall
+* WorkflowManagerFarm
   * Added logic to only add the EnableFirewallRules parameter to Add-SBHost
     if the value is true. This to prevent issues where the firewall isn't
     enabled on a server.
+* WorkflowManagerInstall
   * Removed the CU5 install for the Workflow Manager Client. The update
     is not applicable for the client.
   * Workaround for faulty references to Microsoft.ServiceBus.dll, 1.8.0.0
     in WorkflowManager PowerShell module.
+  * Corrected install order of refresh package to prevent Service Fabric
+    going into distress
+  * Updated installation detection to properly detect Workflow Manager
+    and Service Bus
 
 ## 1.3
 

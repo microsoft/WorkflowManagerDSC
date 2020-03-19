@@ -3,15 +3,15 @@ param(
     [String] $WFCmdletModule = (Join-Path -Path $PSScriptRoot -ChildPath '..\Stubs\1.0\WorkflowManager.psm1' -Resolve)
 )
 
-$Script:DSCModuleName      = 'WorkflowManagerDsc'
-$Script:DSCResourceName    = 'MSFT_WorkflowManagerInstall'
+$Script:DSCModuleName = 'WorkflowManagerDsc'
+$Script:DSCResourceName = 'MSFT_WorkflowManagerInstall'
 $Global:CurrentWFCmdletModule = $WFCmdletModule
 
 [String] $moduleRoot = Join-Path -Path $PSScriptRoot -ChildPath "..\..\..\Modules\WorkflowManagerDsc" -Resolve
 if ( (-not (Test-Path -Path (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
-     (-not (Test-Path -Path (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
+    (-not (Test-Path -Path (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
 {
-    & git @('clone','https://github.com/PowerShell/DscResource.Tests.git',(Join-Path -Path $moduleRoot -ChildPath '\DSCResource.Tests\'))
+    & git.exe @('clone', 'https://github.com/PowerShell/DscResource.Tests.git', (Join-Path -Path $moduleRoot -ChildPath '\DSCResource.Tests\'))
 }
 Import-Module (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1') -Force
 $TestEnvironment = Initialize-TestEnvironment `
@@ -41,8 +41,8 @@ try
                 }
 
                 Mock -CommandName Get-ChildItem -MockWith {
-                    return @(1,2,3,4,5,6)
-                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager'}
+                    return @(1, 2, 3, 4, 5, 6)
+                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager' }
 
                 Mock -CommandName Get-Content -MockWith {
                     $content = @"
@@ -127,8 +127,8 @@ try
                 }
 
                 Mock -CommandName Get-ChildItem -MockWith {
-                    return @(1,2,3,4,5,6)
-                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager'}
+                    return @(1, 2, 3, 4, 5, 6)
+                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager' }
 
                 Mock -CommandName Get-Content -MockWith {
                     $content = @"
@@ -181,8 +181,12 @@ try
                 }
 
                 Mock -CommandName Get-ChildItem -MockWith {
-                    return @(1,2,3,4,5,6)
-                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager'}
+                    return @("a")
+                } -ParameterFilter { $Path -eq 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall' }
+
+                Mock -CommandName Get-ChildItem -MockWith {
+                    return @(1, 2, 3, 4, 5, 6)
+                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager' }
 
                 Mock -CommandName Get-Content -MockWith {
                     $content = @"
@@ -205,6 +209,10 @@ try
                     return $content
                 }
 
+                Mock -CommandName Join-Path -MockWith {
+                    return "C:\WFFiles\installers\WorkflowCU5\CDB89C96654333492D749AC589BCE16AE3A0A07D\WorkflowManager-KB4055730-x64-ENU.exe"
+                }
+
                 Mock -CommandName Start-Process -MockWith {
                     return @{
                         ExitCode = 0
@@ -213,6 +221,19 @@ try
 
                 Mock -CommandName Test-Path -MockWith {
                     return $true
+                }
+
+                Mock -CommandName Get-ItemProperty -MockWith {
+                    return @(
+                        @{
+                            UninstallString = "MsiExec.exe /X{F438C511-5A64-433E-97EC-5E5343DA670A}"
+                            DisplayName     = "Service Bus 1.1"
+                        },
+                        @{
+                            UninstallString = "MsiExec.exe /X{F438C511-5A64-433E-97EC-5E5343DA670A}"
+                            DisplayName     = "Windows Fabric"
+                        }
+                    )
                 }
 
                 It "Returns that it is not installed from the get method" {
@@ -254,8 +275,8 @@ try
                 }
 
                 Mock -CommandName Get-ChildItem -MockWith {
-                    return @(1,2,3,4,5,6)
-                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager'}
+                    return @(1, 2, 3, 4, 5, 6)
+                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager' }
 
                 Mock -CommandName Get-Content -MockWith {
                     $content = @"
@@ -309,8 +330,8 @@ try
                 }
 
                 Mock -CommandName Get-ChildItem -MockWith {
-                    return @(1,2,3,4,5,6)
-                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager'}
+                    return @(1, 2, 3, 4, 5, 6)
+                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager' }
 
                 Mock -CommandName Get-Content -MockWith {
                     $content = @"
@@ -364,8 +385,8 @@ try
                 }
 
                 Mock -CommandName Get-ChildItem -MockWith {
-                    return @(1,2,3,4,5,6)
-                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager'}
+                    return @(1, 2, 3, 4, 5, 6)
+                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager' }
 
                 Mock -CommandName Get-Content -MockWith {
                     $content = @"
@@ -429,8 +450,8 @@ try
                 }
 
                 Mock -CommandName Get-ChildItem -MockWith {
-                    return @(1,2,3,4,5,6)
-                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager'}
+                    return @(1, 2, 3, 4, 5, 6)
+                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager' }
 
                 Mock -CommandName Get-Content -MockWith {
                     $content = @"
@@ -472,6 +493,9 @@ try
                     return @(
                         @{
                             Name = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Workflow Manager\1.0"
+                        },
+                        @{
+                            Name = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Service Bus\1.1"
                         }
                     )
                 }
@@ -636,8 +660,8 @@ try
                 }
 
                 Mock -CommandName Get-ChildItem -MockWith {
-                    return @(1,2,3,4,5,6)
-                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager'}
+                    return @(1, 2, 3, 4, 5, 6)
+                } -ParameterFilter { $Path -eq 'C:\Program Files\Workflow Manager' }
 
                 Mock -CommandName Get-Content -MockWith {
                     $content = @"
